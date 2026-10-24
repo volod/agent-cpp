@@ -1,0 +1,7 @@
+# shellcheck settings for `make lint-shell`.
+# The tool tests source tools/tests/lib.sh; resolve it next to the sourcing script.
+external-sources=true
+source-path=SCRIPTDIR
+# SC2016 reports that $ and backticks do not expand in single quotes. In these scripts they are
+# awk programs and Markdown code spans, which must reach awk and the files unexpanded.
+disable=SC2016

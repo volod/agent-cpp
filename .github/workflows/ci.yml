@@ -1,0 +1,50 @@
+# Thin wrapper over make: every step is a command a contributor can run locally, and
+# `make matrix UBUNTU=<version>` reproduces a job.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: gates (ubuntu ${{ matrix.ubuntu }})
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: ["24.04", "26.04"]
+    runs-on: ubuntu-24.04
+    container: ubuntu:${{ matrix.ubuntu }}
+    steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          tools/setup-ubuntu.sh --yes
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: cache-${{ matrix.ubuntu }}-${{ hashFiles('cmake/**', 'CMakePresets.json') }}
+          restore-keys: cache-${{ matrix.ubuntu }}-
+      - run: make doctor
+      - run: make ci
+      - run: make check PRESET=host-clang
+      - run: make cross
+      - name: Release archives
+        run: for target in linux-amd64 rpi5 luckfox-pico; do make dist TARGET="$target"; done
+      - uses: actions/upload-artifact@v4
+        if: matrix.ubuntu == '24.04'
+        with:
+          name: dist
+          path: dist/*.tar.gz
+          retention-days: 7

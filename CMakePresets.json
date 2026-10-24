@@ -1,0 +1,223 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/$env{AGENT_BUILD_PREFIX}${presetName}",
+      "cacheVariables": {
+        "FETCHCONTENT_BASE_DIR": "${sourceDir}/.cache/fetchcontent/$env{AGENT_BUILD_PREFIX}${presetName}"
+      }
+    },
+    {
+      "name": "host-debug",
+      "displayName": "Host (amd64) debug, warnings as errors",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AGENT_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "host-asan",
+      "displayName": "Host debug with AddressSanitizer and UndefinedBehaviorSanitizer",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AGENT_WARNINGS_AS_ERRORS": "ON",
+        "AGENT_SANITIZERS": "address;undefined"
+      }
+    },
+    {
+      "name": "host-clang",
+      "displayName": "Host debug with Clang",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "AGENT_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "host-cuda",
+      "displayName": "Host debug with CUDA (set AGENT_CUDA_ARCHITECTURES, e.g. 89 or native)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AGENT_WARNINGS_AS_ERRORS": "ON",
+        "AGENT_ENABLE_CUDA": "ON"
+      }
+    },
+    {
+      "name": "host-release",
+      "displayName": "Host (amd64) release, static",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "AGENT_WARNINGS_AS_ERRORS": "ON",
+        "AGENT_STATIC": "ON"
+      }
+    },
+    {
+      "name": "rpi5-debug",
+      "displayName": "Raspberry Pi 5 (aarch64) debug, tests under qemu-aarch64",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/rpi5.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AGENT_WARNINGS_AS_ERRORS": "ON",
+        "AGENT_STATIC": "ON",
+        "AGENT_TARGET_NAME": "rpi5"
+      }
+    },
+    {
+      "name": "rpi5-release",
+      "displayName": "Raspberry Pi 5 (aarch64) release, static",
+      "inherits": "rpi5-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "luckfox-debug",
+      "displayName": "Luckfox Pico (armv7 hard-float) debug, tests under qemu-arm",
+      "inherits": "base",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/luckfox-pico.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "AGENT_WARNINGS_AS_ERRORS": "ON",
+        "AGENT_STATIC": "ON",
+        "AGENT_TARGET_NAME": "luckfox-pico"
+      }
+    },
+    {
+      "name": "luckfox-release",
+      "displayName": "Luckfox Pico (armv7 hard-float) release, static",
+      "inherits": "luckfox-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug"
+    },
+    {
+      "name": "host-asan",
+      "configurePreset": "host-asan"
+    },
+    {
+      "name": "host-clang",
+      "configurePreset": "host-clang"
+    },
+    {
+      "name": "host-cuda",
+      "configurePreset": "host-cuda"
+    },
+    {
+      "name": "host-release",
+      "configurePreset": "host-release"
+    },
+    {
+      "name": "rpi5-debug",
+      "configurePreset": "rpi5-debug"
+    },
+    {
+      "name": "rpi5-release",
+      "configurePreset": "rpi5-release"
+    },
+    {
+      "name": "luckfox-debug",
+      "configurePreset": "luckfox-debug"
+    },
+    {
+      "name": "luckfox-release",
+      "configurePreset": "luckfox-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "timeout": 120
+      }
+    },
+    {
+      "name": "host-debug",
+      "inherits": "base",
+      "configurePreset": "host-debug"
+    },
+    {
+      "name": "host-asan",
+      "inherits": "base",
+      "configurePreset": "host-asan"
+    },
+    {
+      "name": "host-clang",
+      "inherits": "base",
+      "configurePreset": "host-clang"
+    },
+    {
+      "name": "host-cuda",
+      "inherits": "base",
+      "configurePreset": "host-cuda"
+    },
+    {
+      "name": "host-release",
+      "inherits": "base",
+      "configurePreset": "host-release"
+    },
+    {
+      "name": "rpi5-debug",
+      "inherits": "base",
+      "configurePreset": "rpi5-debug"
+    },
+    {
+      "name": "rpi5-release",
+      "inherits": "base",
+      "configurePreset": "rpi5-release"
+    },
+    {
+      "name": "luckfox-debug",
+      "inherits": "base",
+      "configurePreset": "luckfox-debug"
+    },
+    {
+      "name": "luckfox-release",
+      "inherits": "base",
+      "configurePreset": "luckfox-release"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "host-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "host-debug"
+        },
+        {
+          "type": "build",
+          "name": "host-debug"
+        },
+        {
+          "type": "test",
+          "name": "host-debug"
+        }
+      ]
+    }
+  ]
+}

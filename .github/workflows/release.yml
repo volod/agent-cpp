@@ -1,0 +1,74 @@
+# Publishes a GitHub release for a pushed tag vMAJOR.MINOR.PATCH that equals the project
+# version. See docs/design/spec.md#release-distribution.
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          tools/setup-ubuntu.sh --yes
+      - run: make ci
+      - run: make cross
+
+  build:
+    needs: gate
+    strategy:
+      matrix:
+        target: [linux-amd64, rpi5, luckfox-pico]
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          tools/setup-ubuntu.sh --yes
+      - name: Build archive
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          make dist TARGET="${{ matrix.target }}" TAG="$TAG"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist/*.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum *.tar.gz > SHA256SUMS
+          sha256sum -c SHA256SUMS
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" dist/* --verify-tag --generate-notes

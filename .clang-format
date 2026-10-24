@@ -1,0 +1,17 @@
+# Google C++ style (https://google.github.io/styleguide/cppguide.html), C++20.
+# Checked by `make format-check`; apply with `make format`.
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++20
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Related header first is automatic (IncludeIsMainRegex); then C system, C++ standard,
+  # then other libraries and project headers.
+  - Regex: '^<[a-z_]+\.h>$'
+    Priority: 1
+  - Regex: '^<[a-z_]+>$'
+    Priority: 2
+  - Regex: '^"'
+    Priority: 3
